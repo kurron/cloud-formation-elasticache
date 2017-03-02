@@ -2,7 +2,7 @@
 
 # creates a stack in AWS via CloudFromation
 
-STACKNAME=${1:-Weapon-Y-Cache}
+STACKNAME=${1:-Weapon-X-Cache}
 PROJECTNAME=${2:-Weapon-X}
 VPC=${3:-vpc-3db4d95a}
 SUBNETS=${4:-subnet-f53ce2bc,subnet-77038710,subnet-b190a9e9}
