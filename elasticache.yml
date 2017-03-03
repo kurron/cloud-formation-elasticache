@@ -40,7 +40,7 @@ Parameters:
     InstanceType:
         Description: 'How large of a box to run your cluster on'
         Type: 'String'
-        Default: 'cache.t2.micro'
+        Default: 'cache.m3.medium'
 
     VPC:
         Description: 'VPC ID we are inserting into'
@@ -92,16 +92,21 @@ Resources:
                 Ref: Subnets
 
     ElastiCacheCluster:
-        Type: AWS::ElastiCache::CacheCluster
+        Type: AWS::ElastiCache::ReplicationGroup
         Properties:
+            AutomaticFailoverEnabled: true
+            AutoMinorVersionUpgrade: true
             CacheNodeType:
                 Ref: InstanceType
             CacheSubnetGroupName:
                 Ref: SubnetGroup
-            Engine: redis
-            NumCacheNodes: 1
+            Engine: 'redis'
+            NumCacheClusters: 2
             Port:
                 Ref: CachePort
+            ReplicationGroupDescription: 'Redis cluster'
+            SecurityGroupIds:
+                - Ref: 'WideOpenSecurityGroup'
             Tags:
                 - Key: 'Name'
                   Value:
@@ -120,13 +125,17 @@ Resources:
                 - Key: 'Freetext'
                   Value:
                       Ref: 'Notes'
-            VpcSecurityGroupIds:
-                - Ref: 'WideOpenSecurityGroup'
 
 Outputs:
-    Address:
-        Description: 'The DNS address of the configuration endpoint for the Redis cache cluster.'
-        Value: !GetAtt ElastiCacheCluster.RedisEndpoint.Address
-    Port:
-        Description: 'The port number of the configuration endpoint for the Redis cache cluster.'
-        Value: !GetAtt ElastiCacheCluster.RedisEndpoint.Port
+    PrimaryAddress:
+        Description: 'The DNS address of the primary read-write cache node.'
+        Value: !GetAtt ElastiCacheCluster.PrimaryEndPoint.Address
+    PrimaryPort:
+        Description: 'The number of the port that the primary read-write cache engine is listening on.'
+        Value: !GetAtt ElastiCacheCluster.PrimaryEndPoint.Port
+    SecondaryAddresses:
+        Description: 'A string with a list of endpoints for the read-only replicas.'
+        Value: !GetAtt ElastiCacheCluster.ReadEndPoint.Addresses
+    SecondaryPorts:
+        Description: 'A string with a list of ports for the read-only replicas. '
+        Value: !GetAtt ElastiCacheCluster.ReadEndPoint.Ports
